@@ -1,9 +1,19 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'HomaWeb';
+  src: local('B Homa'), local('BHoma'), local('Homa'),
+       url('https://cdn.fontcdn.ir/Font/Persian/Homa/Homa.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Vazirmatn", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-display: "Vazirmatn", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-homa: "B Homa", "BHoma", "Homa", "HomaWeb", "Vazirmatn", Tahoma, sans-serif;
 }
 
 @layer base {
@@ -11,6 +21,10 @@
     font-family: var(--font-sans);
     overflow-x: hidden;
   }
+}
+
+.font-homa {
+  font-family: var(--font-homa);
 }
 
 /* 3D Glossy Bubble & Orbital Card Utilities */

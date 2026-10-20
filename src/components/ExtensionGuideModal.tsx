@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, X, Chrome, CheckCircle2, FolderArchive, ToggleRight, Upload } from 'lucide-react';
+import { Download, X, Chrome, CheckCircle2, FolderArchive, Trash2, Upload } from 'lucide-react';
 import { PortalSite, EXTENSION_TITLE, FOOTER_CREDIT } from '../data/defaultSites';
 import { generateChromeExtensionZip } from '../services/extensionBuilder';
 
@@ -28,7 +28,7 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'mosbat-zendegi-7828-chrome-extension.zip';
+      a.download = 'mosbat-zendegi-7828-chrome-extension-v4.zip';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -56,7 +56,7 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
               <Chrome className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold">دانلود و نصب در مرورگر گوگل کروم</h3>
+              <h3 className="font-homa text-base font-extrabold">دانلود و نصب افزونه کروم (نسخه ۴.۰ نهایی)</h3>
               <p className="text-xs text-slate-400">{EXTENSION_TITLE}</p>
             </div>
           </div>
@@ -70,9 +70,15 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
         </div>
 
         <div className="mt-4 space-y-4">
-          <p className="text-xs leading-relaxed text-slate-300">
-            با دانلود این بسته، افزونه اختصاصی شامل <strong>حباب سه‌بعدی لوگو در سمت راست کروم (سایدبار کشویی)</strong> و همچنین <strong>صفحه تب جدید مداری (New Tab)</strong> به همراه تمامی سامانه‌های فعلی شما تولید می‌شود.
-          </p>
+          <div
+            className={`p-3 rounded-2xl border text-xs leading-relaxed ${
+              isDark
+                ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-200'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}
+          >
+            <strong>تغییرات نسخه ۴.۰ نهایی:</strong> مشکل باز شدن خودکار در تب جدید کروم (New Tab) به‌طور کامل حذف شد. به محض فعال کردن افزونه، <strong>سایدبار کشویی سمت راست به همراه لوگوی بدون حاشیه</strong> در سمت راست تمام سایت‌ها قرار می‌گیرد (با فونت هما، ساعت و تاریخ فارسی در سمت راست هدر، دکمه چرخ‌دنده تنظیمات در سمت چپ هدر و نمایش کامل تمامی عناوین).
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div
@@ -83,7 +89,7 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
               <FolderArchive className="w-5 h-5 text-emerald-400 mb-2" />
               <div className="text-xs font-bold mb-1">۱. استخراج فایل زیپ</div>
               <p className="text-[11px] text-slate-400 leading-normal">
-                فایل دانلود شده را در یک پوشه روی سیستم خود Extract (از حالت فشرده خارج) کنید.
+                فایل زیپ نسخه ۴.۰ را دانلود کرده و در یک پوشه جدید از حالت فشرده خارج (Extract) کنید.
               </p>
             </div>
 
@@ -92,10 +98,10 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
                 isDark ? 'bg-slate-950/60 border-white/10' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <ToggleRight className="w-5 h-5 text-emerald-400 mb-2" />
-              <div className="text-xs font-bold mb-1">۲. بخش افزونه‌های کروم</div>
+              <Trash2 className="w-5 h-5 text-rose-400 mb-2" />
+              <div className="text-xs font-bold mb-1">۲. حذف نسخه قدیمی</div>
               <p className="text-[11px] text-slate-400 leading-normal">
-                در کروم آدرس <code className="font-mono text-emerald-300">chrome://extensions</code> را باز کرده و Developer mode را فعال کنید.
+                در <code className="font-mono text-emerald-300">chrome://extensions</code> حتماً روی دکمه <strong>Remove</strong> نسخه قبلی (2.0.0) کلیک کنید تا حذف شود.
               </p>
             </div>
 
@@ -105,15 +111,15 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
               }`}
             >
               <Upload className="w-5 h-5 text-emerald-400 mb-2" />
-              <div className="text-xs font-bold mb-1">۳. بارگذاری پوشه</div>
+              <div className="text-xs font-bold mb-1">۳. بارگذاری پوشه جدید</div>
               <p className="text-[11px] text-slate-400 leading-normal">
-                روی دکمه <strong>Load unpacked</strong> کلیک کرده و پوشه مرحله اول را انتخاب نمایید.
+                روی دکمه <strong>Load unpacked</strong> کلیک کرده و پوشه جدید نسخه ۴.۰ را انتخاب نمایید.
               </p>
             </div>
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-[11px] text-slate-400">{FOOTER_CREDIT}</span>
+            <span className="font-homa text-xs text-slate-400">{FOOTER_CREDIT}</span>
 
             <button
               type="button"
@@ -124,12 +130,12 @@ export const ExtensionGuideModal: React.FC<ExtensionGuideModalProps> = ({
               {downloaded ? (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>دانلود مجدد بسته افزونه کروم (ZIP)</span>
+                  <span>دانلود مجدد بسته افزونه کروم (نسخه ۴.۰)</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>{isGenerating ? 'در حال ساخت بسته...' : 'دانلود مستقیم افزونه کروم (ZIP)'}</span>
+                  <span>{isGenerating ? 'در حال ساخت بسته...' : 'دانلود مستقیم افزونه کروم (ZIP نسخه ۴.۰)'}</span>
                 </>
               )}
             </button>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  SlidersHorizontal,
   Sun,
   Moon,
   Orbit,
@@ -10,11 +9,11 @@ import {
   Plus,
   Download,
   CheckSquare,
+  Settings,
 } from 'lucide-react';
 import {
   PortalSite,
   DEFAULT_PORTAL_SITES,
-  LOGO_ASSET_PATH,
   EXTENSION_TITLE,
   FOOTER_CREDIT,
 } from './data/defaultSites';
@@ -28,7 +27,7 @@ import { PureLogo } from './components/PureLogo';
 export default function App() {
   const [sites, setSites] = useState<PortalSite[]>(() => {
     try {
-      const saved = localStorage.getItem('mz7828_portal_sites_v1');
+      const saved = localStorage.getItem('mz7828_portal_sites_v2');
       return saved ? JSON.parse(saved) : DEFAULT_PORTAL_SITES;
     } catch {
       return DEFAULT_PORTAL_SITES;
@@ -48,14 +47,16 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('همه');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Right-side slide-out sidebar state
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(false);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState<boolean>(false);
+  // Right-side slide-out sidebar state (positioned on the right side immediately on activation)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState<boolean>(true);
+
+  // Header left-side Gear Settings Menu state
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState<boolean>(false);
 
   // Background Logo Watermark Customization
   const [watermarkOpacity, setWatermarkOpacity] = useState<number>(0.09);
   const [watermarkBlur, setWatermarkBlur] = useState<number>(1);
-  const [showBgSettings, setShowBgSettings] = useState<boolean>(false);
 
   // Modals
   const [isTasksOpen, setIsTasksOpen] = useState<boolean>(false);
@@ -63,17 +64,17 @@ export default function App() {
   const [editingSite, setEditingSite] = useState<PortalSite | null>(null);
   const [isExtensionModalOpen, setIsExtensionModalOpen] = useState<boolean>(false);
 
-  // Live Persian Date & Clock
+  // Live Persian Date & Clock (updates every second)
   const [now, setNow] = useState<Date>(new Date());
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem('mz7828_portal_sites_v1', JSON.stringify(sites));
+      localStorage.setItem('mz7828_portal_sites_v2', JSON.stringify(sites));
     } catch {
       // ignore storage errors
     }
@@ -87,7 +88,7 @@ export default function App() {
     }
   }, [isDark]);
 
-  // Keyboard shortcuts 1-9 to launch portals quickly when not typing in an input
+  // Keyboard shortcuts 1-9 to launch portals quickly
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -162,9 +163,16 @@ export default function App() {
     year: 'numeric',
   }).format(now);
 
+  const persianDateShort = new Intl.DateTimeFormat('fa-IR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+
   const persianTime = new Intl.DateTimeFormat('fa-IR', {
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   }).format(now);
 
   return (
@@ -175,7 +183,7 @@ export default function App() {
           : 'bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 text-slate-900'
       }`}
     >
-      {/* Faint Watermark Pure Logo in Background (بدون حاشیه و فقط اصل لوگو به صورت کم رنگ در پس‌زمینه) */}
+      {/* Faint Watermark Pure Logo in Background */}
       <div
         className="fixed inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
         style={{
@@ -189,327 +197,226 @@ export default function App() {
         />
       </div>
 
-      {/* Top Navigation Bar (Strict 3-Zone Contract) */}
+      {/* Top Navigation Bar:
+          - Right Side (سمت راست هدر): Stacked Persian Clock & Date (ساعت و تاریخ فارسی زیر هم) + Brand Title in Homa font
+          - Center: Navigation & Search
+          - Left Side (سمت چپ هدر): Gear Icon Settings Button (آیکون چرخ دنده) + Chrome Extension Download
+      */}
       <header
-        className={`relative z-30 flex items-center justify-between gap-8 px-6 py-3.5 border-b backdrop-blur-xl ${
-          isDark ? 'bg-slate-950/75 border-white/10' : 'bg-white/80 border-slate-200/90'
+        className={`relative z-40 flex items-center justify-between gap-4 px-5 py-3 border-b backdrop-blur-xl ${
+          isDark ? 'bg-slate-950/85 border-white/10' : 'bg-white/85 border-slate-200/90'
         }`}
       >
-        {/* Zone 1: Single-line Brand Title Wordmark */}
-        <a
-          href="#top"
-          onClick={(e) => {
-            e.preventDefault();
-            setViewMode('orbital');
-          }}
-          className="text-base sm:text-lg font-extrabold tracking-tight whitespace-nowrap shrink-0"
-        >
-          {EXTENSION_TITLE}
-        </a>
+        {/* Zone 1 (Right Side in RTL): Stacked Persian Time & Date + Brand Title in Homa Font */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div
+            className={`flex flex-col items-start justify-center px-3 py-1 rounded-xl border leading-tight ${
+              isDark ? 'bg-slate-900/90 border-white/10' : 'bg-slate-100 border-slate-300/80'
+            }`}
+          >
+            <span className="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono tabular-nums">
+              {persianTime}
+            </span>
+            <span className={`text-[10px] sm:text-[11px] font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {persianDate}
+            </span>
+          </div>
 
-        {/* Zone 2: 4–5 Clean Single-Line Text Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setViewMode('orbital')}
-            className={`hover:underline underline-offset-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              viewMode === 'orbital'
-                ? 'text-emerald-400 font-bold'
-                : isDark
-                ? 'text-slate-300 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            نمای مداری سه‌بعدی
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsRightSidebarOpen(true);
-              setIsRightSidebarPinned(true);
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              setViewMode('orbital');
             }}
-            className={`hover:underline underline-offset-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              isRightSidebarOpen
-                ? 'text-emerald-400 font-bold'
-                : isDark
-                ? 'text-slate-300 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            className="font-homa text-base sm:text-lg font-bold tracking-tight whitespace-nowrap shrink-0"
           >
-            سایدبار کشویی راست
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingSite(null);
-              setIsEditorOpen(true);
-            }}
-            className={`hover:underline underline-offset-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            افزودن سامانه
-          </button>
+            {EXTENSION_TITLE}
+          </a>
+        </div>
+
+        {/* Zone 2 (Center): Quick Search & View Links */}
+        <div className="hidden lg:flex items-center gap-4">
+          <div className="relative w-56">
+            <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="جستجوی نام یا آدرس سامانه..."
+              className={`w-full pr-8 pl-3 py-1.5 rounded-xl text-xs border outline-none transition-colors ${
+                isDark
+                  ? 'bg-slate-900/80 border-white/10 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500/60'
+                  : 'bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600'
+              }`}
+            />
+          </div>
+
           <button
             type="button"
             onClick={() => setIsTasksOpen(true)}
-            className={`hover:underline underline-offset-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+            className={`text-xs font-semibold flex items-center gap-1.5 hover:underline underline-offset-8 cursor-pointer whitespace-nowrap shrink-0 ${
+              isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
             }`}
           >
-            وظایف و Google Tasks
+            <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <span>وظایف روزانه</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setShowBgSettings(!showBgSettings)}
-            className={`hover:underline underline-offset-8 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              showBgSettings
-                ? 'text-emerald-400 font-bold'
-                : isDark
-                ? 'text-slate-300 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            تنظیمات پس‌زمینه
-          </button>
-        </nav>
+        </div>
 
-        {/* Zone 3: 1 Primary Action Button */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Zone 3 (Left Side in RTL): Download Extension Button + Gear Settings Icon on the Far Left */}
+        <div className="flex items-center gap-2.5 shrink-0 relative">
           <button
             type="button"
             onClick={() => setIsExtensionModalOpen(true)}
-            className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/25 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+            className="px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/25 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
           >
             <Download className="w-3.5 h-3.5" />
             <span>دانلود افزونه کروم</span>
           </button>
+
+          {/* Gear Settings Button on the Left Side of Header (دکمه تنظیمات در هدر سمت چپ با آیکون چرخ دنده) */}
+          <button
+            type="button"
+            onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
+            title="تنظیمات (تم، افزودن کارت، تنظیم نمایش افزونه)"
+            className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+              isSettingsMenuOpen
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/25'
+                : isDark
+                ? 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-white/15'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-xs font-bold hidden sm:inline">تنظیمات</span>
+          </button>
+
+          {/* Left Header Gear Settings Popover Panel */}
+          {isSettingsMenuOpen && (
+            <div
+              className={`absolute left-0 top-13 w-72 rounded-2xl border p-4 shadow-2xl z-50 space-y-3.5 ${
+                isDark
+                  ? 'bg-slate-900 border-white/20 text-slate-100'
+                  : 'bg-white border-slate-300 text-slate-900'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <span className="font-homa text-sm font-bold">تنظیمات افزونه</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsMenuOpen(false)}
+                  className="text-xs text-slate-400 hover:text-emerald-400 cursor-pointer"
+                >
+                  بستن
+                </button>
+              </div>
+
+              {/* 1. Theme Settings */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-400 block">۱. تنظیمات تم و پس‌زمینه</span>
+                <button
+                  type="button"
+                  onClick={() => setIsDark(!isDark)}
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between border transition-colors cursor-pointer ${
+                    isDark
+                      ? 'bg-slate-950 border-white/10 hover:border-emerald-500/50'
+                      : 'bg-slate-100 border-slate-300 hover:border-emerald-500'
+                  }`}
+                >
+                  <span>حالت فعلی: {isDark ? 'تم تیره (شب)' : 'تم روشن (روز)'}</span>
+                  {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+                </button>
+
+                <div className="pt-1 flex items-center justify-between gap-2 text-[11px]">
+                  <span>وضوح لوگوی پس‌زمینه:</span>
+                  <input
+                    type="range"
+                    min="0.02"
+                    max="0.35"
+                    step="0.01"
+                    value={watermarkOpacity}
+                    onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value))}
+                    className="w-28 accent-emerald-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Add Card Setting */}
+              <div className="space-y-1.5 pt-1 border-t border-white/10">
+                <span className="text-[11px] font-bold text-slate-400 block">۲. مدیریت کارت‌ها و سامانه‌ها</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSettingsMenuOpen(false);
+                    setEditingSite(null);
+                    setIsEditorOpen(true);
+                  }}
+                  className="w-full px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-between cursor-pointer transition-colors"
+                >
+                  <span>اضافه کردن کارت / سامانه جدید</span>
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 3. Extension Display Mode Setting */}
+              <div className="space-y-1.5 pt-1 border-t border-white/10">
+                <span className="text-[11px] font-bold text-slate-400 block">۳. تنظیم نمایش افزونه</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('orbital')}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 border cursor-pointer ${
+                      viewMode === 'orbital'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                        : isDark
+                        ? 'bg-slate-950 border-white/10 text-slate-300'
+                        : 'bg-slate-100 border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    <Orbit className="w-3.5 h-3.5" />
+                    <span>نمای مداری</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 border cursor-pointer ${
+                      viewMode === 'grid'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                        : isDark
+                        ? 'bg-slate-950 border-white/10 text-slate-300'
+                        : 'bg-slate-100 border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>نمای کارت‌ها</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !isRightSidebarOpen;
+                    setIsRightSidebarOpen(next);
+                    setIsRightSidebarPinned(next);
+                  }}
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between border cursor-pointer ${
+                    isRightSidebarOpen
+                      ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300'
+                      : isDark
+                      ? 'bg-slate-950 border-white/10 text-slate-300'
+                      : 'bg-slate-100 border-slate-300 text-slate-700'
+                  }`}
+                >
+                  <span>پنل کشویی سمت راست</span>
+                  <PanelRightOpen className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Secondary Workspace Control Bar */}
-      <section className="relative z-20 max-w-6xl w-full mx-auto px-6 pt-4">
-        <div
-          className={`rounded-2xl border px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 backdrop-blur-xl ${
-            isDark ? 'bg-slate-900/65 border-white/10' : 'bg-white/75 border-slate-200/90'
-          }`}
-        >
-          {/* Search Input & Category Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[260px]">
-            <div className="relative w-56 sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجوی نام یا آدرس سامانه..."
-                className={`w-full pr-8 pl-3 py-1.5 rounded-xl text-xs border outline-none transition-colors ${
-                  isDark
-                    ? 'bg-slate-950/80 border-white/10 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500/60'
-                    : 'bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600'
-                }`}
-              />
-            </div>
-
-            {/* Interactive Category Filter Buttons */}
-            <div
-              className={`hidden xl:flex items-center gap-1 p-1 rounded-xl ${
-                isDark ? 'bg-slate-950/70' : 'bg-slate-200/70'
-              }`}
-            >
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                    selectedCategory === cat
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : isDark
-                      ? 'text-slate-400 hover:text-slate-200'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Controls: Date/Time + View Mode + Sidebar Trigger + Theme */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div
-              className={`hidden md:flex items-center gap-2 text-xs px-2.5 py-1 ${
-                isDark ? 'text-slate-400' : 'text-slate-600'
-              }`}
-            >
-              <span>{persianDate}</span>
-              <span aria-hidden="true">·</span>
-              <span className="font-mono tabular-nums font-bold text-emerald-400">{persianTime}</span>
-            </div>
-
-            {/* Segmented View Switcher (Orbital 3D vs Grid 3D) */}
-            <div
-              className={`flex items-center gap-1 p-1 rounded-xl ${
-                isDark ? 'bg-slate-950/80' : 'bg-slate-200/80'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setViewMode('orbital')}
-                title="نمای دایره‌ای حباب در مرکز"
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                  viewMode === 'orbital'
-                    ? 'bg-emerald-600 text-white'
-                    : isDark
-                    ? 'text-slate-400 hover:text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Orbit className="w-3.5 h-3.5" />
-                <span>مداری</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                title="نمای شبکه‌ای سه‌بعدی"
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                  viewMode === 'grid'
-                    ? 'bg-emerald-600 text-white'
-                    : isDark
-                    ? 'text-slate-400 hover:text-white'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>کارت‌ها</span>
-              </button>
-            </div>
-
-            {/* Open Right Slide-Out Sidebar Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsRightSidebarOpen(!isRightSidebarOpen);
-                if (!isRightSidebarOpen) setIsRightSidebarPinned(true);
-              }}
-              title="باز کردن سایدبار کشویی سمت راست"
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 border transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                isRightSidebarOpen
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                  : isDark
-                  ? 'bg-slate-800/80 border-white/10 text-slate-200 hover:bg-slate-800'
-                  : 'bg-slate-200/80 border-slate-300 text-slate-800 hover:bg-slate-300'
-              }`}
-            >
-              <PanelRightOpen className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">سایدبار راست</span>
-            </button>
-
-            {/* Tasks Quick Trigger */}
-            <button
-              type="button"
-              onClick={() => setIsTasksOpen(true)}
-              title="مدیریت وظایف روزانه و Google Tasks"
-              className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                isDark
-                  ? 'bg-slate-800/80 border-white/10 text-emerald-400 hover:bg-slate-800'
-                  : 'bg-slate-200/80 border-slate-300 text-emerald-700 hover:bg-slate-300'
-              }`}
-            >
-              <CheckSquare className="w-4 h-4" />
-            </button>
-
-            {/* Add Site Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                setEditingSite(null);
-                setIsEditorOpen(true);
-              }}
-              title="افزودن سامانه جدید"
-              className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                isDark
-                  ? 'bg-slate-800/80 border-white/10 text-slate-200 hover:bg-slate-800'
-                  : 'bg-slate-200/80 border-slate-300 text-slate-800 hover:bg-slate-300'
-              }`}
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-
-            {/* Watermark Settings Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowBgSettings(!showBgSettings)}
-              title="تنظیم شفافیت لوگوی پس‌زمینه"
-              className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                showBgSettings
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                  : isDark
-                  ? 'bg-slate-800/80 border-white/10 text-slate-300 hover:bg-slate-800'
-                  : 'bg-slate-200/80 border-slate-300 text-slate-700 hover:bg-slate-300'
-              }`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
-
-            {/* Light / Dark Theme Switcher */}
-            <button
-              type="button"
-              onClick={() => setIsDark(!isDark)}
-              title={isDark ? 'تم روشن' : 'تم تیره'}
-              className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
-                isDark
-                  ? 'bg-slate-800/80 border-white/10 text-amber-300 hover:bg-slate-800'
-                  : 'bg-slate-200/80 border-slate-300 text-slate-700 hover:bg-slate-300'
-              }`}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Collapsible Watermark Opacity & Blur Controls */}
-        {showBgSettings && (
-          <div
-            className={`mt-2 rounded-2xl border px-5 py-3 flex flex-wrap items-center justify-between gap-6 backdrop-blur-xl ${
-              isDark ? 'bg-slate-900/85 border-white/15' : 'bg-white/90 border-slate-300'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold">میزان وضوح لوگوی کم‌رنگ پس‌زمینه:</span>
-              <input
-                type="range"
-                min="0.02"
-                max="0.35"
-                step="0.01"
-                value={watermarkOpacity}
-                onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value))}
-                className="w-36 accent-emerald-500 cursor-pointer"
-              />
-              <span className="text-xs font-mono tabular-nums text-emerald-400">
-                {Math.round(watermarkOpacity * 100)}%
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold">میزان محو شدن (Blur) لوگو:</span>
-              <input
-                type="range"
-                min="0"
-                max="8"
-                step="0.5"
-                value={watermarkBlur}
-                onChange={(e) => setWatermarkBlur(parseFloat(e.target.value))}
-                className="w-32 accent-emerald-500 cursor-pointer"
-              />
-              <span className="text-xs font-mono tabular-nums text-emerald-400">{watermarkBlur}px</span>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Main 3D Orbital Stage (Central 3D Logo Bubble + Surrounding 3D Portals) */}
+      {/* Main 3D Orbital Stage */}
       <main className="relative z-10 flex-1 flex flex-col justify-center">
         <OrbitalHubStage
           sites={filteredSites}
@@ -525,21 +432,24 @@ export default function App() {
             setIsEditorOpen(true);
           }}
           onOpenRightSidebar={() => {
-            setIsRightSidebarOpen(true);
-            setIsRightSidebarPinned(true);
+            setIsRightSidebarOpen(!isRightSidebarOpen);
+            if (!isRightSidebarOpen) setIsRightSidebarPinned(true);
           }}
         />
       </main>
 
-      {/* Right-Side Floating 3D Bubble + Slide-Out Sidebar Drawer */}
+      {/* Right-Side Sliding Sidebar Drawer (به محض فعال شدن در سمت راست قرار می‌گیرد) */}
       <RightBubbleSidebar
         sites={sites}
         isDark={isDark}
         watermarkOpacity={watermarkOpacity}
         isOpen={isRightSidebarOpen}
         isPinned={isRightSidebarPinned}
+        persianTime={persianTime}
+        persianDateShort={persianDateShort}
         onOpenChange={setIsRightSidebarOpen}
         onPinChange={setIsRightSidebarPinned}
+        onToggleTheme={() => setIsDark(!isDark)}
         onAddSite={() => {
           setEditingSite(null);
           setIsEditorOpen(true);
@@ -550,15 +460,15 @@ export default function App() {
         }}
       />
 
-      {/* Bottom Footer Bar with Requested Exact Credit */}
+      {/* Bottom Footer Bar in Homa Font (نوار پایین افزونه با فونت هما) */}
       <footer
-        className={`relative z-30 py-2.5 px-6 border-t backdrop-blur-md text-center ${
+        className={`font-homa relative z-30 py-2.5 px-6 border-t backdrop-blur-md text-center ${
           isDark
-            ? 'bg-slate-950/85 border-white/10 text-slate-300'
-            : 'bg-white/85 border-slate-200 text-slate-700'
+            ? 'bg-slate-950/85 border-white/10 text-slate-200'
+            : 'bg-white/85 border-slate-200 text-slate-800'
         }`}
       >
-        <p className="text-xs font-bold tracking-wide">{FOOTER_CREDIT}</p>
+        <p className="text-xs sm:text-sm font-bold tracking-wide">{FOOTER_CREDIT}</p>
       </footer>
 
       {/* Modals */}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ExternalLink, Edit2, Trash2, Plus } from 'lucide-react';
-import { PortalSite } from '../data/defaultSites';
+import { PortalSite, getOrbitalPosition } from '../data/defaultSites';
 import { PortalIcon } from './PortalIcon';
 import { PureLogo } from './PureLogo';
 
@@ -29,6 +29,33 @@ export const OrbitalHubStage: React.FC<OrbitalHubStageProps> = ({
     rx: 0,
     ry: 0,
   });
+
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [stageSize, setStageSize] = useState<{ width: number; height: number }>({
+    width: 900,
+    height: 560,
+  });
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setStageSize({ width: rect.width, height: rect.height });
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(el);
+    window.addEventListener('resize', updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, [viewMode]);
 
   const handleMouseMoveCard = (e: React.MouseEvent<HTMLDivElement>, id: string) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -153,90 +180,102 @@ export const OrbitalHubStage: React.FC<OrbitalHubStageProps> = ({
     );
   }
 
-  // Default: Pure Borderless Central Logo + Circular Orbiting Portals
+  // Responsive orbital radii guaranteed to keep all 9 cards non-overlapping and fully legible
+  const isCompact = stageSize.width < 680;
+  const cardWidth = isCompact ? 176 : 218;
+  const radiusX = Math.max(155, Math.min(335, stageSize.width / 2 - cardWidth / 2 - 14));
+  const radiusY = Math.max(178, Math.min(225, stageSize.height / 2 - 54));
+  const centerX = stageSize.width / 2;
+  const centerY = stageSize.height / 2;
+
   return (
-    <div className="relative w-full flex-1 flex items-center justify-center min-h-[590px] py-4 select-none overflow-hidden">
-      <div className="relative w-[880px] h-[560px] max-w-full flex items-center justify-center">
+    <div className="relative w-full flex-1 flex items-center justify-center min-h-[570px] py-2 select-none overflow-hidden">
+      <div
+        ref={stageRef}
+        className="relative w-full max-w-[980px] h-[560px] mx-auto"
+      >
         {/* SVG Orbital Track & Dynamic Connector Lines */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 880 560"
+          viewBox={`0 0 ${stageSize.width} ${stageSize.height}`}
         >
           <defs>
             <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(16, 185, 129, 0.22)" />
+              <stop offset="0%" stopColor="rgba(16, 185, 129, 0.24)" />
               <stop offset="50%" stopColor="rgba(239, 68, 68, 0.1)" />
               <stop offset="100%" stopColor="rgba(0, 0, 0, 0)" />
             </radialGradient>
           </defs>
 
-          <circle cx="440" cy="280" r="220" fill="url(#centerGlow)" />
+          <circle cx={centerX} cy={centerY} r={Math.min(radiusX, radiusY)} fill="url(#centerGlow)" />
 
           <ellipse
-            cx="440"
-            cy="280"
-            rx="315"
-            ry="215"
+            cx={centerX}
+            cy={centerY}
+            rx={radiusX}
+            ry={radiusY}
             fill="none"
-            stroke={isDark ? 'rgba(255,255,255,0.09)' : 'rgba(15,23,42,0.09)'}
+            stroke={isDark ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.12)'}
             strokeWidth="1.5"
             strokeDasharray="6 6"
           />
 
           {/* Connector Rays from Central Logo to Each Portal */}
           {sites.map((site, idx) => {
-            const total = sites.length;
-            const angle = (idx / total) * (2 * Math.PI) - Math.PI / 2;
-            const rx = 315;
-            const ry = 215;
-            const x2 = 440 + Math.cos(angle) * rx;
-            const y2 = 280 + Math.sin(angle) * ry;
+            const total = Math.max(1, sites.length);
+            const { x, y } = getOrbitalPosition(idx, total, radiusX, radiusY);
+            const x2 = centerX + x;
+            const y2 = centerY + y;
             const isHovered = hoveredId === site.id;
 
             return (
-              <g key={site.id}>
-                <line
-                  x1="440"
-                  y1="280"
-                  x2={x2}
-                  y2={y2}
-                  stroke={
-                    isHovered
-                      ? '#10b981'
-                      : isDark
-                      ? 'rgba(255,255,255,0.07)'
-                      : 'rgba(15,23,42,0.08)'
-                  }
-                  strokeWidth={isHovered ? '3' : '1.2'}
-                  strokeDasharray={isHovered ? 'none' : '4 4'}
-                />
-              </g>
+              <line
+                key={site.id}
+                x1={centerX}
+                y1={centerY}
+                x2={x2}
+                y2={y2}
+                stroke={
+                  isHovered
+                    ? '#10b981'
+                    : isDark
+                    ? 'rgba(255,255,255,0.09)'
+                    : 'rgba(15,23,42,0.1)'
+                }
+                strokeWidth={isHovered ? '3' : '1.2'}
+                strokeDasharray={isHovered ? 'none' : '4 4'}
+              />
             );
           })}
         </svg>
 
-        {/* Pure Borderless Central Logo (بدون هیچ‌گونه حاشیه یا کادر اضافه) */}
+        {/* Pure Borderless Central Logo Positioned at Exact Center (50%, 50%) */}
         <div
           onClick={onOpenRightSidebar}
-          title="کلیک برای باز کردن سایدبار کشویی سمت راست"
-          className="relative z-20 cursor-pointer group flex flex-col items-center justify-center"
+          title="کلیک برای باز/بسته کردن سایدبار کشویی سمت راست"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+          className="absolute z-20 cursor-pointer group flex flex-col items-center justify-center"
         >
-          <div className="w-40 h-40 flex items-center justify-center animate-float-bubble transition-transform duration-300 group-hover:scale-110">
+          <div
+            className={`${
+              isCompact ? 'w-28 h-28' : 'w-38 h-38'
+            } flex items-center justify-center animate-float-bubble transition-transform duration-300 group-hover:scale-110`}
+          >
             <PureLogo
               alt="لوگوی مرکز مثبت زندگی ۷۸۲۸ سیرجان"
-              className="w-full h-full object-contain drop-shadow-[0_18px_32px_rgba(239,68,68,0.42)]"
+              className="w-full h-full object-contain drop-shadow-[0_18px_32px_rgba(239,68,68,0.45)]"
             />
           </div>
         </div>
 
-        {/* Orbiting 3D Portal Buttons Around the Central Logo */}
+        {/* Orbiting 3D Portal Buttons Around the Central Logo (No truncated titles!) */}
         {sites.map((site, idx) => {
-          const total = sites.length;
-          const angle = (idx / total) * (2 * Math.PI) - Math.PI / 2;
-          const radiusX = 315;
-          const radiusY = 215;
-          const x = Math.cos(angle) * radiusX;
-          const y = Math.sin(angle) * radiusY;
+          const total = Math.max(1, sites.length);
+          const { x, y } = getOrbitalPosition(idx, total, radiusX, radiusY);
           const isHovered = hoveredId === site.id;
           const isTilted = tiltState.id === site.id;
 
@@ -247,25 +286,36 @@ export const OrbitalHubStage: React.FC<OrbitalHubStageProps> = ({
               onMouseEnter={() => setHoveredId(site.id)}
               onMouseLeave={handleMouseLeaveCard}
               style={{
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                width: `${cardWidth}px`,
                 transform: isTilted
-                  ? `translate(${x}px, ${y - 8}px) perspective(650px) rotateX(${tiltState.rx}deg) rotateY(${tiltState.ry}deg) scale(1.1)`
-                  : `translate(${x}px, ${y}px) perspective(650px) rotateX(0deg) rotateY(0deg) scale(1)`,
+                  ? `translate(-50%, calc(-50% - 7px)) perspective(650px) rotateX(${tiltState.rx}deg) rotateY(${tiltState.ry}deg) scale(1.09)`
+                  : 'translate(-50%, -50%) perspective(650px) rotateX(0deg) rotateY(0deg) scale(1)',
               }}
-              className={`absolute z-30 w-[195px] rounded-2xl border px-3.5 py-3 transition-all duration-200 ${
+              className={`absolute z-30 rounded-2xl border px-3 py-2.5 transition-all duration-200 ${
                 isDark
                   ? 'card-3d-dark border-white/15'
                   : 'card-3d-light border-slate-300/90'
               } ${isHovered ? 'border-emerald-400 z-40' : ''}`}
             >
+              {/* Number Badge at Top-Left Corner */}
+              <span
+                title={`کلید میانبر ${idx + 1}`}
+                className="absolute -top-2 -left-2 w-5 h-5 rounded-md bg-emerald-500 text-slate-950 font-mono tabular-nums text-[10px] font-extrabold flex items-center justify-center shadow"
+              >
+                {idx + 1}
+              </span>
+
               <div className="flex items-center justify-between gap-2">
                 <a
                   href={site.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 flex-1 min-w-0"
+                  className="flex items-center gap-2 flex-1 min-w-0"
                 >
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 ${
                       isHovered
                         ? 'bg-emerald-500 text-white scale-110 shadow-lg shadow-emerald-500/30'
                         : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
@@ -275,11 +325,11 @@ export const OrbitalHubStage: React.FC<OrbitalHubStageProps> = ({
                   </div>
 
                   <div className="min-w-0 flex-1 text-right">
-                    <div className="text-xs font-extrabold truncate flex items-center gap-1">
-                      <span className="truncate">{site.name}</span>
+                    <div className="text-[12.5px] font-extrabold leading-snug whitespace-nowrap">
+                      {site.name}
                     </div>
                     <div
-                      className={`text-[10px] truncate ${
+                      className={`text-[10px] whitespace-nowrap mt-0.5 ${
                         isDark ? 'text-slate-400' : 'text-slate-500'
                       }`}
                     >
@@ -288,25 +338,17 @@ export const OrbitalHubStage: React.FC<OrbitalHubStageProps> = ({
                   </div>
                 </a>
 
-                <div className="flex flex-col items-center gap-1 shrink-0">
-                  <span
-                    title={`کلید میانبر ${idx + 1}`}
-                    className="w-5 h-5 rounded-md bg-slate-500/15 text-emerald-400 font-mono tabular-nums text-[10px] font-bold flex items-center justify-center"
-                  >
-                    {idx + 1}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditSite(site);
-                    }}
-                    title="ویرایش نام و آدرس"
-                    className="opacity-0 hover:opacity-100 focus:opacity-100 p-0.5 text-slate-400 hover:text-emerald-400 transition-opacity cursor-pointer"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditSite(site);
+                  }}
+                  title="ویرایش نام و آدرس"
+                  className="opacity-50 hover:opacity-100 p-0.5 text-slate-400 hover:text-emerald-400 transition-opacity cursor-pointer shrink-0"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </button>
               </div>
             </div>
           );

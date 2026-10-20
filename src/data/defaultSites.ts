@@ -14,11 +14,47 @@ export const LOGO_ASSET_PATH = '/assets/aistudio/ChatGPT_Image_Sep_5__2026__10_0
 export const EXTENSION_TITLE = 'افزونه سامانه های اداری مراکز مثبت زندگی';
 export const FOOTER_CREDIT = 'طرح و ایده مهدی افشار مرکز مثبت زندگی 7828 سیرجان';
 
+/**
+ * Computes well-spaced orbital coordinates around (0,0) so that bottom cards (5 & 6)
+ * and top cards (9, 1, 2) never overlap and long Persian titles fit completely.
+ */
+export function getOrbitalPosition(
+  index: number,
+  total: number,
+  radiusX: number,
+  radiusY: number
+): { x: number; y: number } {
+  if (total === 9) {
+    const ninePointLayout: Array<[number, number]> = [
+      [0, -1.0],      // 1. سامانه جامع (بالا وسط)
+      [0.94, -0.67],  // 2. سامانه لایف پلاس (بالا راست)
+      [1.0, -0.11],   // 3. سامانه ارمغان (میانه راست بالا)
+      [0.96, 0.44],   // 4. سامانه اشتغال (میانه راست پایین)
+      [0.56, 0.96],   // 5. استعلام دهک بندی (پایین راست - با فاصله کامل از ۶)
+      [-0.56, 0.96],  // 6. سامانه تیکتینگ (پایین چپ - با فاصله کامل از ۵)
+      [-0.96, 0.44],  // 7. سامانه سما کارت (میانه چپ پایین)
+      [-1.0, -0.11],  // 8. دریافت شماره شبا (میانه چپ بالا)
+      [-0.94, -0.67], // 9. سامانه صدای مشاور (بالا چپ)
+    ];
+    const [nx, ny] = ninePointLayout[index];
+    return {
+      x: Math.round(nx * radiusX),
+      y: Math.round(ny * radiusY),
+    };
+  }
+
+  const angle = (index / Math.max(1, total)) * (2 * Math.PI) - Math.PI / 2;
+  return {
+    x: Math.round(Math.cos(angle) * radiusX),
+    y: Math.round(Math.sin(angle) * radiusY),
+  };
+}
+
 export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-1',
     name: 'سامانه جامع',
-    subtitle: 'پورتال جامع سازمان بهزیستی کشور',
+    subtitle: 'پورتال سازمان بهزیستی کشور',
     url: 'https://swo.behzisti.ir/',
     category: 'پورتال‌های اصلی',
     iconName: 'Building2',
@@ -28,7 +64,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-2',
     name: 'سامانه لایف پلاس',
-    subtitle: 'مدیریت پرونده و خدمات مراکز مثبت زندگی',
+    subtitle: 'خدمات مراکز مثبت زندگی',
     url: 'https://lifeplus.behzisti.net/',
     category: 'خدمات الکترونیک',
     iconName: 'HeartHandshake',
@@ -38,7 +74,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-3',
     name: 'سامانه ارمغان',
-    subtitle: 'درگاه یکپارچه خدمات بهزیستی',
+    subtitle: 'درگاه خدمات بهزیستی',
     url: 'https://ui.behzisti.net/#/login',
     category: 'خدمات الکترونیک',
     iconName: 'Sparkles',
@@ -48,7 +84,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-4',
     name: 'سامانه اشتغال',
-    subtitle: 'رصد، ثبت و پیگیری تسهیلات اشتغال',
+    subtitle: 'پیگیری تسهیلات اشتغال',
     url: 'https://job.behzisti.net/account/login',
     category: 'پورتال‌های اصلی',
     iconName: 'Briefcase',
@@ -58,7 +94,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-5',
     name: 'استعلام دهک بندی',
-    subtitle: 'سامانه سام و بررسی وضعیت دهک معیشتی',
+    subtitle: 'سامانه سام و دهک معیشتی',
     url: 'https://sam.behzisti.net/Account/Login?ReturnUrl=%2F',
     category: 'استعلام و پایش',
     iconName: 'FileSearch',
@@ -68,7 +104,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-6',
     name: 'سامانه تیکتینگ',
-    subtitle: 'ثبت درخواست پشتیبانی و اتوماسیون فنی',
+    subtitle: 'پشتیبانی و اتوماسیون فنی',
     url: 'https://ticketing.behzisti.gov.ir/Dana/Shared/Public/SignIn.aspx#signIn',
     category: 'پشتیبانی و مشاوره',
     iconName: 'TicketCheck',
@@ -78,7 +114,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-7',
     name: 'سامانه سما کارت',
-    subtitle: 'مدیریت کارت و خدمات رفاهی تاپ',
+    subtitle: 'مدیریت کارت و خدمات رفاهی',
     url: 'https://eservices.top.ir/login',
     category: 'امور مالی و بانکی',
     iconName: 'CreditCard',
@@ -88,7 +124,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-8',
     name: 'دریافت شماره شبا',
-    subtitle: 'محاسبه و استعلام شبا بانک رفاه کارگران',
+    subtitle: 'استعلام شبا بانک رفاه',
     url: 'https://gsh.rb24.ir/sheba_new.aspx',
     category: 'امور مالی و بانکی',
     iconName: 'Landmark',
@@ -98,7 +134,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-9',
     name: 'سامانه صدای مشاور',
-    subtitle: 'مدیریت ارتباط با مددجویان و مشاوره CRM',
+    subtitle: 'ارتباط با مددجویان و مشاوره',
     url: 'https://crm.behzisti.ir/',
     category: 'پشتیبانی و مشاوره',
     iconName: 'Headset',
