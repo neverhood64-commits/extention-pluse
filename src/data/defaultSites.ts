@@ -15,8 +15,8 @@ export const EXTENSION_TITLE = 'افزونه سامانه های اداری مر
 export const FOOTER_CREDIT = 'طرح و ایده مهدی افشار مرکز مثبت زندگی 7828 سیرجان';
 
 /**
- * Computes well-spaced orbital coordinates around (0,0) so that bottom cards (5 & 6)
- * and top cards (9, 1, 2) never overlap and long Persian titles fit completely.
+ * Computes well-spaced orbital coordinates around (0,0) so that all 9 cards
+ * fit inside a single compact view with zero horizontal or vertical clipping.
  */
 export function getOrbitalPosition(
   index: number,
@@ -27,14 +27,14 @@ export function getOrbitalPosition(
   if (total === 9) {
     const ninePointLayout: Array<[number, number]> = [
       [0, -1.0],      // 1. سامانه جامع (بالا وسط)
-      [0.94, -0.67],  // 2. سامانه لایف پلاس (بالا راست)
+      [0.92, -0.66],  // 2. سامانه لایف پلاس (بالا راست)
       [1.0, -0.11],   // 3. سامانه ارمغان (میانه راست بالا)
-      [0.96, 0.44],   // 4. سامانه اشتغال (میانه راست پایین)
-      [0.56, 0.96],   // 5. استعلام دهک بندی (پایین راست - با فاصله کامل از ۶)
-      [-0.56, 0.96],  // 6. سامانه تیکتینگ (پایین چپ - با فاصله کامل از ۵)
-      [-0.96, 0.44],  // 7. سامانه سما کارت (میانه چپ پایین)
+      [0.95, 0.44],   // 4. سامانه اشتغال (میانه راست پایین)
+      [0.54, 0.96],   // 5. استعلام دهک بندی (پایین راست)
+      [-0.54, 0.96],  // 6. سامانه تیکتینگ (پایین چپ)
+      [-0.95, 0.44],  // 7. سامانه سما کارت (میانه چپ پایین)
       [-1.0, -0.11],  // 8. دریافت شماره شبا (میانه چپ بالا)
-      [-0.94, -0.67], // 9. سامانه صدای مشاور (بالا چپ)
+      [-0.92, -0.66], // 9. سامانه صدای مشاور (بالا چپ)
     ];
     const [nx, ny] = ninePointLayout[index];
     return {
@@ -54,7 +54,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-1',
     name: 'سامانه جامع',
-    subtitle: 'پورتال سازمان بهزیستی کشور',
+    subtitle: 'پورتال سازمان بهزیستی',
     url: 'https://swo.behzisti.ir/',
     category: 'پورتال‌های اصلی',
     iconName: 'Building2',
@@ -104,7 +104,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-6',
     name: 'سامانه تیکتینگ',
-    subtitle: 'پشتیبانی و اتوماسیون فنی',
+    subtitle: 'پشتیبانی و اتوماسیون',
     url: 'https://ticketing.behzisti.gov.ir/Dana/Shared/Public/SignIn.aspx#signIn',
     category: 'پشتیبانی و مشاوره',
     iconName: 'TicketCheck',
@@ -114,7 +114,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-7',
     name: 'سامانه سما کارت',
-    subtitle: 'مدیریت کارت و خدمات رفاهی',
+    subtitle: 'کارت و خدمات رفاهی تاپ',
     url: 'https://eservices.top.ir/login',
     category: 'امور مالی و بانکی',
     iconName: 'CreditCard',
@@ -134,7 +134,7 @@ export const DEFAULT_PORTAL_SITES: PortalSite[] = [
   {
     id: 'site-9',
     name: 'سامانه صدای مشاور',
-    subtitle: 'ارتباط با مددجویان و مشاوره',
+    subtitle: 'ارتباط و مشاوره مددجویان',
     url: 'https://crm.behzisti.ir/',
     category: 'پشتیبانی و مشاوره',
     iconName: 'Headset',

@@ -47,9 +47,9 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('همه');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Right-side slide-out sidebar state (positioned on the right side immediately on activation)
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState<boolean>(true);
+  // Right-side slide-out sidebar state (closed by default; opens only on click)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(false);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState<boolean>(false);
 
   // Header left-side Gear Settings Menu state
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState<boolean>(false);
